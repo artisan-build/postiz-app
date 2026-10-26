@@ -38,7 +38,8 @@ if (env.DATABASE_URL) {
   env.DATABASE_URL = database.toString();
   env.TEMPORAL_PG_HOST ||= database.hostname;
   env.TEMPORAL_PG_PORT = database.port || '5432';
-  env.TEMPORAL_PG_DATABASE = database.pathname.slice(1);
+  env.TEMPORAL_PG_DATABASE ||= 'temporal';
+  env.TEMPORAL_PG_VISIBILITY_DATABASE ||= 'temporal_visibility';
   env.TEMPORAL_PG_USER = decodeURIComponent(database.username);
   env.TEMPORAL_PG_PASSWORD = decodeURIComponent(database.password);
   env.TEMPORAL_PG_TLS = String(database.searchParams.get('sslmode') !== 'disable');

@@ -11,8 +11,11 @@ function load(env) {
 
 test('Temporal can use its certificate hostname without changing Postiz database settings', () => {
   const database = 'postgresql://app%2Bname:p%40ss%3Aword@alias.example:6543/postiz?sslmode=require&serverVersion=17';
-  const env = load({ DATABASE_URL: database, TEMPORAL_PG_HOST: 'canonical.example' });
+  const env = load({ DATABASE_URL: database, TEMPORAL_PG_HOST: 'canonical.example',
+    TEMPORAL_PG_DATABASE: 'history', TEMPORAL_PG_VISIBILITY_DATABASE: 'visibility' });
   assert.equal(env.TEMPORAL_PG_HOST, 'canonical.example');
+  assert.equal(env.TEMPORAL_PG_DATABASE, 'history');
+  assert.equal(env.TEMPORAL_PG_VISIBILITY_DATABASE, 'visibility');
   assert.equal(new URL(env.DATABASE_URL).hostname, 'alias.example');
   assert.equal(new URL(env.DATABASE_URL).searchParams.has('serverVersion'), false);
   assert.equal(env.TEMPORAL_PG_USER, 'app+name');
@@ -22,6 +25,8 @@ test('Temporal can use its certificate hostname without changing Postiz database
   const local = load({ DATABASE_URL: 'postgresql://app:pw@127.0.0.1/postiz?sslmode=disable' });
   assert.equal(local.TEMPORAL_PG_HOST, '127.0.0.1');
   assert.equal(local.TEMPORAL_PG_TLS, 'false');
+  assert.equal(local.TEMPORAL_PG_DATABASE, 'temporal');
+  assert.equal(local.TEMPORAL_PG_VISIBILITY_DATABASE, 'temporal_visibility');
 });
 
 test('Cloud resource settings preserve regional R2 endpoints and explicit public URLs', () => {

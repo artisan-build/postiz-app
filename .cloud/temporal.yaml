@@ -15,8 +15,6 @@ persistence:
         connectProtocol: tcp
         user: {{ env "TEMPORAL_PG_USER" | quote }}
         password: {{ env "TEMPORAL_PG_PASSWORD" | quote }}
-        connectAttributes:
-          search_path: temporal
         maxConns: 5
         maxIdleConns: 1
         maxConnLifetime: 1h
@@ -26,13 +24,11 @@ persistence:
     visibility:
       sql:
         pluginName: postgres12
-        databaseName: {{ env "TEMPORAL_PG_DATABASE" | quote }}
+        databaseName: {{ env "TEMPORAL_PG_VISIBILITY_DATABASE" | quote }}
         connectAddr: {{ printf "%s:%s" (env "TEMPORAL_PG_HOST") (env "TEMPORAL_PG_PORT") | quote }}
         connectProtocol: tcp
         user: {{ env "TEMPORAL_PG_USER" | quote }}
         password: {{ env "TEMPORAL_PG_PASSWORD" | quote }}
-        connectAttributes:
-          search_path: temporal_visibility
         maxConns: 2
         maxIdleConns: 1
         maxConnLifetime: 1h
