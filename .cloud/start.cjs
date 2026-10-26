@@ -9,6 +9,7 @@ process.chdir(path.join(__dirname, '..'));
 const children = [];
 let stopping = false;
 let server;
+let booted = false;
 
 async function stop(code) {
   if (stopping) return;
@@ -58,6 +59,36 @@ async function boot() {
   ]) {
     if (!process.env[key]) throw new Error(`${key} is required`);
   }
+  // Cloud requires an open port while dependencies initialize. Do not expose
+  // application traffic until readiness checks and initial owner claiming pass.
+  server = http.createServer((req, res) => {
+    if (!booted || stopping) {
+      res.writeHead(503, { 'retry-after': '5' });
+      res.end('Postiz is starting');
+      return;
+    }
+    const api = req.url.startsWith('/api/');
+    const upstream = http.request({
+      hostname: '127.0.0.1', port: api ? 3001 : 4200,
+      path: api ? req.url.slice(4) : req.url, method: req.method,
+      headers: req.headers,
+    }, (response) => {
+      res.writeHead(response.statusCode, response.headers);
+      response.pipe(res);
+      res.on('close', () => response.destroy());
+    });
+    upstream.on('error', () => {
+      if (!res.headersSent) res.writeHead(502);
+      res.end();
+    });
+    req.on('aborted', () => upstream.destroy());
+    req.pipe(upstream);
+  });
+  server.on('error', (error) => {
+    console.error(error.message);
+    void stop(1);
+  });
+  server.listen(Number(process.env.PORT || 3000), '::');
   start('Temporal', '.cloud/bin/temporal-server', [
     '--root', process.cwd(), '--config', '.cloud', '--env', 'temporal',
     '--allow-no-auth', 'start',
@@ -119,29 +150,8 @@ async function boot() {
     console.log('Owner registered; follow the Postiz activation email before logging in');
   }
 
-  server = http.createServer((req, res) => {
-    const api = req.url.startsWith('/api/');
-    const upstream = http.request({
-      hostname: '127.0.0.1', port: api ? 3001 : 4200,
-      path: api ? req.url.slice(4) : req.url, method: req.method,
-      headers: req.headers,
-    }, (response) => {
-      res.writeHead(response.statusCode, response.headers);
-      response.pipe(res);
-      res.on('close', () => response.destroy());
-    });
-    upstream.on('error', () => {
-      if (!res.headersSent) res.writeHead(502);
-      res.end();
-    });
-    req.on('aborted', () => upstream.destroy());
-    req.pipe(upstream);
-  });
-  server.on('error', (error) => {
-    console.error(error.message);
-    void stop(1);
-  });
-  server.listen(Number(process.env.PORT || 3000), '::', () => console.log('Postiz Cloud ready'));
+  booted = true;
+  console.log('Postiz Cloud ready');
 }
 
 process.once('SIGTERM', () => void stop(0));
