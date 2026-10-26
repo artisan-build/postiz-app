@@ -20,7 +20,7 @@ demo-org deployment stays a reference only.
 
 ## CI
 
-- Actions are enabled by the first PR; record the required contexts here once they exist.
+- required context: `Production build and deployment safeguards`
 
 ## Deployment
 
