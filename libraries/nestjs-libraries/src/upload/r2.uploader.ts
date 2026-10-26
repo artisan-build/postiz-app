@@ -55,7 +55,9 @@ const {
 
 const R2 = new S3Client({
   region: 'auto',
-  endpoint: `https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint:
+    process.env.CLOUDFLARE_ENDPOINT ||
+    `https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
     accessKeyId: CLOUDFLARE_ACCESS_KEY!,
     secretAccessKey: CLOUDFLARE_SECRET_ACCESS_KEY!,
