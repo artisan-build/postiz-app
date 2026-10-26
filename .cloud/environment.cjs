@@ -36,7 +36,7 @@ if (env.DATABASE_URL) {
   const database = new URL(env.DATABASE_URL);
   database.searchParams.delete('serverVersion');
   env.DATABASE_URL = database.toString();
-  env.TEMPORAL_PG_HOST = database.hostname;
+  env.TEMPORAL_PG_HOST ||= database.hostname;
   env.TEMPORAL_PG_PORT = database.port || '5432';
   env.TEMPORAL_PG_DATABASE = database.pathname.slice(1);
   env.TEMPORAL_PG_USER = decodeURIComponent(database.username);
