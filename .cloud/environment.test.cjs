@@ -33,11 +33,17 @@ test('Cloud resource settings preserve regional R2 endpoints and explicit public
   const env = load({ APP_URL: 'https://postiz.example', AWS_BUCKET: 'bucket-73',
     AWS_ENDPOINT_URL: 'https://bucket-73.account.eu.r2.cloudflarestorage.com',
     AWS_ACCESS_KEY_ID: 'test-key', AWS_SECRET_ACCESS_KEY: 'test-secret',
-    CLOUDFLARE_BUCKET_URL: 'https://media.example', MAIL_FROM_ADDRESS: 'postiz@example.com' });
+    AWS_URL: 'https://postiz.example', CLOUDFLARE_BUCKET_URL: 'https://media.example',
+    MAIL_FROM_ADDRESS: 'postiz@example.com' });
   assert.equal(env.NEXT_PUBLIC_BACKEND_URL, 'https://postiz.example/api');
   assert.equal(env.CLOUDFLARE_ENDPOINT, 'https://account.eu.r2.cloudflarestorage.com');
   assert.equal(env.CLOUDFLARE_BUCKET_URL, 'https://media.example');
   assert.equal(env.EMAIL_FROM_ADDRESS, 'postiz@example.com');
+
+  const fallback = load({ AWS_BUCKET: 'bucket-73',
+    AWS_ENDPOINT_URL: 'https://account.eu.r2.cloudflarestorage.com',
+    AWS_URL: 'https://media-fallback.example' });
+  assert.equal(fallback.CLOUDFLARE_BUCKET_URL, 'https://media-fallback.example');
 });
 
 test('missing optional mappings do not create literal undefined environment values', () => {
